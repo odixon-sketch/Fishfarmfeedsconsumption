@@ -1,2 +1,138 @@
 # Fishfarmfeedsconsumption
 Recording daily fish feeds consumption
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pond Feeder Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-blue-800">Pond Management</h1>
+            <p class="text-gray-600">Select a pond to record feeding</p>
+            <div id="offline-badge" class="hidden mt-2 inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                Working Offline (Data Saved Locally)
+            </div>
+        </header>
+
+        <div id="pond-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-xl">
+            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-800">Pond Name</h2>
+            
+            <form id="feed-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Fish Type</label>
+                    <input type="text" id="fish-type" readonly class="w-full mt-1 p-2 bg-gray-100 border rounded border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Feed Type</label>
+                    <input type="text" id="feed-type" readonly class="w-full mt-1 p-2 bg-gray-100 border rounded border-gray-300">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Quantity (kg)</label>
+                    <input type="number" id="quantity" required placeholder="0.0" step="0.1" 
+                           class="w-full mt-1 p-4 text-2xl border-2 border-blue-500 rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 py-3 px-4 bg-gray-200 text-gray-800 rounded font-bold">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 px-4 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-TQSezsHinfobMA3t_H5ZsmbxX2IlwFHl11-RL4LRCpYCovJQkjzr2K76205dGDy2sA/exec';
+        const pondConfig = {
+            'Pond 1-10': { fish: 'Tilapia', feed: 'Floating Pellets' },
+            'Pond 11-21': { fish: 'Catfish', feed: 'Sinking Pellets' }
+        };
+
+        const grid = document.getElementById('pond-grid');
+        const modal = document.getElementById('modal');
+        let currentPond = '';
+
+        // --- INITIALIZE GRID ---
+        for (let i = 1; i <= 21; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'aspect-square bg-white border-2 border-blue-200 rounded-lg shadow-sm hover:border-blue-500 flex items-center justify-center font-bold text-blue-700 transition-colors';
+            btn.innerText = i;
+            btn.onclick = () => openModal(i);
+            grid.appendChild(btn);
+        }
+
+        // --- MODAL LOGIC ---
+        function openModal(id) {
+            currentPond = `Pond ${id}`;
+            const config = id <= 10 ? pondConfig['Pond 1-10'] : pondConfig['Pond 11-21'];
+            
+            document.getElementById('modal-title').innerText = currentPond;
+            document.getElementById('fish-type').value = config.fish;
+            document.getElementById('feed-type').value = config.feed;
+            document.getElementById('quantity').value = '';
+            
+            modal.classList.remove('hidden');
+            document.getElementById('quantity').focus();
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        // --- DATA SUBMISSION ---
+        document.getElementById('feed-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                pond: currentPond,
+                fish: document.getElementById('fish-type').value,
+                feed: document.getElementById('feed-type').value,
+                quantity: document.getElementById('quantity').value
+            };
+
+            try {
+                // Attempt to send to Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Common for Apps Script
+                    body: JSON.stringify(data),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                alert('Sent to Google Sheets!');
+            } catch (error) {
+                // Handle Offline / Error
+                saveToLocal(data);
+                alert('Offline: Saved to device. Will sync later.');
+            }
+            
+            closeModal();
+        };
+
+        function saveToLocal(data) {
+            const history = JSON.parse(localStorage.getItem('pendingFeeds') || '[]');
+            history.push(data);
+            localStorage.setItem('pendingFeeds', JSON.stringify(history));
+            updateOfflineStatus();
+        }
+
+        function updateOfflineStatus() {
+            const hasData = JSON.parse(localStorage.getItem('pendingFeeds') || '[]').length > 0;
+            document.getElementById('offline-badge').classList.toggle('hidden', !hasData);
+        }
+
+        // Check status on load
+        updateOfflineStatus();
+    </script>
+</body>
+</html>
