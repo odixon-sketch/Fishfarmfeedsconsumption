@@ -1,6 +1,6 @@
-# Fishfarmfeedsconsumption
+# Fairfields Fisheries Enterprise
 Recording daily fish feeds consumption
-<!DOCTYPE html>
+<!Daily Log>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@ Recording daily fish feeds consumption
 
     <div class="max-w-4xl mx-auto">
         <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-blue-800">Pond Management</h1>
+            <h1 class="text-3xl font-bold text-blue-800">Fish Feed Consumption</h1>
             <p class="text-gray-600">Select a pond to record feeding</p>
             <div id="offline-badge" class="hidden mt-2 inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                 Working Offline (Data Saved Locally)
@@ -54,8 +54,9 @@ Recording daily fish feeds consumption
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-TQSezsHinfobMA3t_H5ZsmbxX2IlwFHl11-RL4LRCpYCovJQkjzr2K76205dGDy2sA/exec';
         const pondConfig = {
-            'Pond 1-10': { fish: 'Tilapia', feed: 'Floating Pellets' },
-            'Pond 11-21': { fish: 'Catfish', feed: 'Sinking Pellets' }
+            'Pond ETP1-ETP7': { fish: <label>, feed: <label> },
+            'Pond FFP1-EEP14': { fish: 'Catfish', feed: <label> },
+            'Pond FFPQ1-EEPQ2': { fish: 'Catfish', feed: <label> }
         };
 
         const grid = document.getElementById('pond-grid');
@@ -63,7 +64,7 @@ Recording daily fish feeds consumption
         let currentPond = '';
 
         // --- INITIALIZE GRID ---
-        for (let i = 1; i <= 21; i++) {
+        for (let i = ETP1; i <= 24; i++) {
             const btn = document.createElement('button');
             btn.className = 'aspect-square bg-white border-2 border-blue-200 rounded-lg shadow-sm hover:border-blue-500 flex items-center justify-center font-bold text-blue-700 transition-colors';
             btn.innerText = i;
